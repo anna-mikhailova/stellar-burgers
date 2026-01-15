@@ -7,7 +7,6 @@ import {
   getUserLoadingSelector,
   clearError
 } from '../../services/slices/user-slice';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { Preloader } from '@ui';
 
 export const Login: FC = () => {
@@ -15,8 +14,6 @@ export const Login: FC = () => {
   const [password, setPassword] = useState('');
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const error = useSelector(getUserErrorSelector);
   const isLoading = useSelector(getUserLoadingSelector);
@@ -26,18 +23,7 @@ export const Login: FC = () => {
 
     dispatch(clearError());
 
-    try {
-      const resultAction = await dispatch(loginUser({ email, password }));
-
-      if (loginUser.fulfilled.match(resultAction)) {
-        const from = location.state?.from || '/';
-        navigate(from, { replace: true });
-      } else if (loginUser.rejected.match(resultAction)) {
-        console.error('Login failed:', resultAction.payload);
-      }
-    } catch (err) {
-      console.error('Unexpected error:', err);
-    }
+    await dispatch(loginUser({ email, password }));
   };
 
   if (isLoading) {

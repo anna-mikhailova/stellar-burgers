@@ -27,7 +27,13 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useDispatch } from '../../services/store';
 import { getCookie } from '../../utils/cookie';
-import { fetchUser, setAuthChecked } from '../../services/slices/user-slice';
+import { setAuthChecked } from '../../services/slices/user-slice';
+import { getUserApi } from '../../utils/burger-api';
+import {
+  fetchIngredients,
+  getIngredientsSelector
+} from '../../services/slices/ingredients-slice';
+import { useSelector } from '../../services/store';
 
 function App() {
   const location = useLocation();
@@ -35,14 +41,40 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Получаем ингредиенты
+  const ingredients = useSelector(getIngredientsSelector);
+
+  // Загружаем ингредиенты
+  useEffect(() => {
+    if (ingredients.items.length === 0) {
+      dispatch(fetchIngredients());
+    }
+  }, [dispatch, ingredients.items.length]);
+
+  // Выводим ошибку при загрузке ингредиентов
+  useEffect(() => {
+    if (ingredients.error) {
+      console.log(ingredients.error);
+    }
+  }, [ingredients.error]);
+
+  // Авторизация пользователя
   useEffect(() => {
     const accessToken = getCookie('accessToken');
 
-    if (accessToken) {
-      dispatch(fetchUser());
-    } else {
-      dispatch(setAuthChecked(true));
-    }
+    const checkUserAuth = async () => {
+      try {
+        if (!accessToken) {
+          await getUserApi();
+        }
+      } catch (error) {
+        console.error('Ошибка при проверке авторизации:', error);
+      } finally {
+        dispatch(setAuthChecked(true));
+      }
+    };
+
+    checkUserAuth();
   }, [dispatch]);
 
   return (

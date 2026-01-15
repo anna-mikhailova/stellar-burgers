@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { TOrder } from '@utils-types';
-import { getOrdersApi, orderBurgerApi } from '../../utils/burger-api';
+import {
+  getOrdersApi,
+  orderBurgerApi,
+  getOrderByNumberApi
+} from '../../utils/burger-api';
 
 interface TOrdersState {
   orders: TOrder[];
@@ -26,6 +30,15 @@ export const fetchUserOrders = createAsyncThunk(
   async () => {
     const response = await getOrdersApi();
     return response;
+  }
+);
+
+// Асинхронный экшен для получения заказа по номеру
+export const fetchOrderByNumber = createAsyncThunk(
+  'orders/getOrderByNumber',
+  async (orderNumber: number) => {
+    const response = await getOrderByNumberApi(orderNumber);
+    return response.orders[0];
   }
 );
 
@@ -89,6 +102,20 @@ const ordersSlice = createSlice({
       .addCase(createOrder.rejected, (state, action) => {
         state.orderRequest = false;
         state.error = action.error.message || 'Ошибка при создании заказа';
+      })
+      // Обработка getOrderByNumber
+      .addCase(fetchOrderByNumber.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentOrder = action.payload;
+      })
+      .addCase(fetchOrderByNumber.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error =
+          action.error.message || 'Ошибка при получении заказа по номеру';
       });
   }
 });

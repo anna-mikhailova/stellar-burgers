@@ -1,28 +1,14 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, nanoid } from '@reduxjs/toolkit';
 import { TIngredient, TConstructorIngredient } from '../../utils/types';
 
 type TBurgerConstructorState = {
   bun: TIngredient | null;
   ingredients: TConstructorIngredient[];
-  totalPrice: number;
 };
 
 const initialState: TBurgerConstructorState = {
   bun: null,
-  ingredients: [],
-  totalPrice: 0
-};
-
-const calculateTotal = (
-  bun: TIngredient | null,
-  ingredients: TConstructorIngredient[]
-): number => {
-  const bunPrice = bun ? bun.price * 2 : 0;
-  const ingredientsPrice = ingredients.reduce(
-    (sum, item) => sum + item.price,
-    0
-  );
-  return bunPrice + ingredientsPrice;
+  ingredients: []
 };
 
 const burgerConstructorSlice = createSlice({
@@ -31,18 +17,20 @@ const burgerConstructorSlice = createSlice({
   reducers: {
     addBun: (state, action: PayloadAction<TIngredient>) => {
       state.bun = action.payload;
-      state.totalPrice = calculateTotal(state.bun, state.ingredients);
     },
-    addIngredient: (state, action: PayloadAction<TIngredient>) => {
-      state.ingredients.push({
-        ...action.payload,
-        id: `${action.payload._id}_${Date.now()}`
-      });
-      state.totalPrice = calculateTotal(state.bun, state.ingredients);
+    addIngredient: {
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        state.ingredients.push(action.payload);
+      },
+      prepare: (ingredient: TIngredient) => {
+        const id = nanoid();
+        return {
+          payload: { ...ingredient, id }
+        };
+      }
     },
     removeIngredient: (state, action: PayloadAction<number>) => {
       state.ingredients.splice(action.payload, 1);
-      state.totalPrice = calculateTotal(state.bun, state.ingredients);
     },
     moveIngredient: (
       state,
@@ -60,7 +48,6 @@ const burgerConstructorSlice = createSlice({
     clearConstructor: (state) => {
       state.bun = null;
       state.ingredients = [];
-      state.totalPrice = 0;
     }
   },
   selectors: {
