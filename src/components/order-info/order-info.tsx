@@ -1,21 +1,53 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TOrder } from '@utils-types';
+import { useDispatch, useSelector } from '../../services/store';
+import { getFeedSelector } from '../../services/slices/feed-slice';
+import { getIngredientsSelector } from '../../services/slices/ingredients-slice';
+import { useParams } from 'react-router-dom';
+import {
+  getCurrentOrderSelector,
+  getUserOrdersSelector,
+  fetchOrderByNumber
+} from '../../services/slices/orders-slice';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const orderNumber = parseInt(number!);
 
-  const ingredients: TIngredient[] = [];
+  const dispatch = useDispatch();
+
+  const feed = useSelector(getFeedSelector);
+  const userOrders = useSelector(getUserOrdersSelector);
+  const currentOrder = useSelector(getCurrentOrderSelector);
+  const ingredients: TIngredient[] = useSelector(getIngredientsSelector).items;
+
+  const orderData = useMemo(() => {
+    /* Ищем в текущем заказе */
+    if (currentOrder && currentOrder.number === orderNumber)
+      return currentOrder;
+
+    /* Ищем в истории заказов */
+    const orderFromUserHistory = userOrders.find(
+      (order) => order.number === orderNumber
+    );
+    if (orderFromUserHistory) return orderFromUserHistory;
+
+    /* Ищем в ленте заказов */
+    const orderFromFeed = feed.orders.find(
+      (order) => order.number === orderNumber
+    );
+    if (orderFromFeed) return orderFromFeed;
+    return null;
+  }, [feed.orders, userOrders, orderNumber, currentOrder]);
+
+  /* Если заказ не найден в сторе, запрашиваем его по номеру */
+  useEffect(() => {
+    if (!orderData) {
+      dispatch(fetchOrderByNumber(orderNumber));
+    }
+  }, [dispatch, orderData, orderNumber]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {

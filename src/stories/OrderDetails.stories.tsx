@@ -33,6 +33,6 @@ type Story = StoryObj<typeof meta>;
 
 export const DefaultOrderDetails: Story = {
   args: {
-    orderNumber: 12
+    orderNumber: '12'
   }
 };
