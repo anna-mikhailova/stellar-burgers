@@ -9,7 +9,7 @@ import { TIngredient } from '../../utils/types';
 import { Preloader } from '../ui/preloader';
 
 export const BurgerIngredients: FC = () => {
-  const { items, loading } = useSelector(getIngredientsSelector);
+  const { items, isLoading } = useSelector(getIngredientsSelector);
 
   const buns = items.filter((item: TIngredient) => item.type === 'bun');
   const mains = items.filter((item: TIngredient) => item.type === 'main');
@@ -52,7 +52,7 @@ export const BurgerIngredients: FC = () => {
       titleSaucesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  if (loading) {
+  if (isLoading) {
     return <Preloader />;
   }
 

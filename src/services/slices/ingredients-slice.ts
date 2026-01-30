@@ -4,13 +4,13 @@ import { getIngredientsApi } from '../../utils/burger-api';
 
 type TIngredientsState = {
   items: TIngredient[];
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
 };
 
-const initialState: TIngredientsState = {
+export const initialState: TIngredientsState = {
   items: [],
-  loading: false,
+  isLoading: false,
   error: null
 };
 
@@ -32,20 +32,20 @@ export const ingredientsSlice = createSlice({
   reducers: {},
   selectors: {
     getIngredientsSelector: (state) => state,
-    getIngredientsLoadingSelector: (state) => state.loading
+    getIngredientsLoadingSelector: (state) => state.isLoading
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchIngredients.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchIngredients.fulfilled, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.items = action.payload;
       })
       .addCase(fetchIngredients.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.error.message || 'Ошибка загрузки';
       });
   }
