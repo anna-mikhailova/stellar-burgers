@@ -13,7 +13,7 @@ export const OrdersList: FC<OrdersListProps> = memo(({ orders }) => {
 
   const ingredients = useSelector(getIngredientsSelector);
   const ingredientsList = ingredients.items;
-  const isLoading = ingredients.loading;
+  const isLoading = ingredients.isLoading;
 
   if (isLoading && !ingredientsList.length) {
     return <Preloader />;

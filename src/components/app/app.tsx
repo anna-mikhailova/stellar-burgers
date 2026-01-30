@@ -27,8 +27,7 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useDispatch } from '../../services/store';
 import { getCookie } from '../../utils/cookie';
-import { setAuthChecked } from '../../services/slices/user-slice';
-import { getUserApi } from '../../utils/burger-api';
+import { fetchUser } from '../../services/slices/user-slice';
 import {
   fetchIngredients,
   getIngredientsSelector
@@ -61,20 +60,10 @@ function App() {
   // Авторизация пользователя
   useEffect(() => {
     const accessToken = getCookie('accessToken');
-
-    const checkUserAuth = async () => {
-      try {
-        if (!accessToken) {
-          await getUserApi();
-        }
-      } catch (error) {
-        console.error('Ошибка при проверке авторизации:', error);
-      } finally {
-        dispatch(setAuthChecked(true));
-      }
-    };
-
-    checkUserAuth();
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (accessToken || refreshToken) {
+      dispatch(fetchUser());
+    }
   }, [dispatch]);
 
   return (
